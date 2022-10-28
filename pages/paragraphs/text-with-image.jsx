@@ -1,23 +1,34 @@
+import DOMPurify from 'dompurify';
 import { useEffect, useState } from "react"
 
-export default function TextWithImage(icon){
-    const [items,setItems] = useState()
+export default function TextWithImage(props){
+    const [img,setImg] = useState()
+    const [alt,setAlt] = useState()
+    const [desc, setDesc] = useState('')
 
-    async function loadBlades() {
-        const response = await  fetch( 'https://dev-pref-nextj.pantheonsite.io/jsonapi/node/page/ce420a9f-5b25-4ce6-aed5-6673a3291eab/field_sections');
-        const names = await response.json();
-        return names; 
+    async function findImagePath(url) {
+        const response = await fetch(url);
+        const img = await response.json();
+        return img.data.attributes.uri.value.replace('public:/', 'https://dev-pref-nextj.pantheonsite.io/sites/default/files')
     }
 
+    const init = async() => {
+        setDesc(DOMPurify.sanitize(props.data.attributes.field_description.processed))
+        setAlt(props.data.relationships.field_image.data.meta.alt)
+        const file = await findImagePath(props.data.relationships.field_image.links.related.href) 
+        setImg(file)   
+    }
     useEffect(() =>{
-        setItems(loadBlades());
+        init()
     },[])
 
     return (
         <section>
             <div>
-                <h1>text</h1>
-                <img src="/pantheon.png" alt="img" />
+            <p dangerouslySetInnerHTML={{ __html: desc }} />
+            </div>
+            <div>
+                <img src={img} alt={alt} />
             </div>
         </section>
     )
