@@ -9,8 +9,8 @@ import {
 
 import Link from 'next/link';
 import Layout from '../../components/layout';
-import ContentWithIcons from '../paragraphs/content-with-icons';
-import TextWithImage from '../paragraphs/text-with-image';
+import ContentWithIcons from '../../components/paragraphs/content-with-icons';
+import TextWithImage from '../../components/paragraphs/text-with-image';
 import { response } from 'msw';
 
 export default function PageTemplate({ page, blades, footerMenu, hrefLang, preview }) {
