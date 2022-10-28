@@ -18,6 +18,7 @@ export default function PageListTemplate({
 	multiLanguage,
 }) {
 	const { locale } = useRouter();
+	console.log(typeof(sortedPages))
 	return (
 		<Layout footerMenu={footerMenu}>
 			<NextSeo

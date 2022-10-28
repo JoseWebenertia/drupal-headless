@@ -9,8 +9,13 @@ import {
 
 import Link from 'next/link';
 import Layout from '../../components/layout';
+import ContentWithIcons from '../paragraphs/content-with-icons';
+import TextWithImage from '../paragraphs/text-with-image';
+import { response } from 'msw';
 
-export default function PageTemplate({ page, footerMenu, hrefLang, preview }) {
+export default function PageTemplate({ page, blades, footerMenu, hrefLang, preview }) {
+	let bladeList = pageBuilder(blades.id, blades.data);
+
 	return (
 		<Layout preview={preview} footerMenu={footerMenu}>
 			<NextSeo
@@ -19,19 +24,34 @@ export default function PageTemplate({ page, footerMenu, hrefLang, preview }) {
 				languageAlternates={hrefLang}
 			/>
 			<article className="prose lg:prose-xl mt-10 mx-auto">
-				<h1>{page.title}</h1>
+				<h1>{page.langcode}</h1>
 
 				<Link passHref href="/pages">
 					<a className="font-normal">Pages &rarr;</a>
 				</Link>
-
-				<div className="mt-12 max-w-lg mx-auto lg:grid-cols-3 lg:max-w-screen-lg">
-					<div dangerouslySetInnerHTML={{ __html: page.body.value }} />
-				</div>
+				{bladeList.map((blade,index)=>{
+					return(<div key={index}> {blade}</div>)
+				})}
 			</article>
 		</Layout>
 	);
 }
+
+function pageBuilder(id,data) {
+	let blades = []
+	data.map((blade,index) => {
+		if(blade.type.replace('paragraph--','') === 'text_with_image' ){
+			blades.push(<TextWithImage id={id} data={blade} order={index} />)
+		}
+		else{
+			blades.push(<ContentWithIcons id={id} data={blade}  order={index} />)
+		}
+	})
+
+	return blades
+}
+
+
 
 export async function getServerSideProps(context) {
 	const { locales, locale } = context;
@@ -71,6 +91,19 @@ export async function getServerSideProps(context) {
 			res: context.res,
 		});
 	}
+	const bladeUrl = 'https://dev-pref-nextj.pantheonsite.io/jsonapi/node/page/' + page.id + '/field_sections'
+	
+	let blades;
+	let pullJson = () =>{
+		fetch(bladeUrl)
+		.then(response => response.json())
+		.then(responseData => {
+			blades =responseData
+		})
+	}
+
+	pullJson()
+	
 
 	const footerMenu = await store.getObject({
 		objectName: 'menu_items--main',
@@ -109,6 +142,7 @@ export async function getServerSideProps(context) {
 	return {
 		props: {
 			page,
+			blades,
 			footerMenu,
 			hrefLang,
 			preview: Boolean(context.preview),
